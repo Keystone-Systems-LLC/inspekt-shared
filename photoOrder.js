@@ -223,6 +223,37 @@ export function getPhotoSortOrder(section, subsection = '', context = {}) {
   const mapped = ORDER[key]
   if (mapped != null) return mapped
 
+  // Custom items per section. CustomItemSection writes photos with
+  // subsection = `custom_item_<itemId>`. Without differentiation all custom
+  // item photos collide on a single sort_order (999999 fallback), and
+  // secondary group_sequence sort interleaves photos across items
+  // (item1-photo1, item2-photo1, item1-photo2, item2-photo2, ...).
+  // To group them by item — preserving "item 1's photos in capture order,
+  // then item 2's photos in capture order, ..." — we look up the item's
+  // index in sortContext.customItemOrdersBySection[section] and assign
+  // sort_order = sectionCustomBase + idx.
+  if (sub.startsWith('custom_item_')) {
+    const itemId = sub.slice('custom_item_'.length)
+    const map = (context.customItemOrdersBySection || {})[section] || []
+    const idx = map.indexOf(itemId)
+    const CUSTOM_BASE_BY_SECTION = {
+      roof:  250,   // after roof::ancillary_other (204), before interior (700)
+      front: 333,   // after front::custom (332), before right::overview (400)
+      right: 433,
+      back:  533,
+      left:  633,
+    }
+    const base = CUSTOM_BASE_BY_SECTION[section]
+    if (base != null) {
+      // Unknown item id (idx === -1) → push to end of the section's custom
+      // range instead of colliding with idx 0. Keeps reorder predictable
+      // when an item id appears in photos that the inspection state
+      // doesn't list (rare — happens if the item was deleted post-capture).
+      const safeIdx = idx >= 0 ? idx : map.length
+      return base + safeIdx
+    }
+  }
+
   if (section === 'other_structures') {
     if (sub.endsWith('_roof_closeup')) return 1020
     if (sub.endsWith('_roof_overview')) return 1010
@@ -374,6 +405,14 @@ export function getEffectiveSortOrder(photo, sortContext = {}) {
 
   // Default interior behavior: ALWAYS recompute (room ids can shift).
   if (sectionKey === 'interior') return computed
+
+  // Custom items: ALWAYS recompute. Reasons:
+  //   1. Items added/reordered in the inspection should reorder their
+  //      photos accordingly without a backfill.
+  //   2. Photos captured before the per-item sort_order rule landed have
+  //      a stale `sort_order = 999999` persisted; recompute fixes them
+  //      on the fly.
+  if (subsectionKey.startsWith('custom_item_')) return computed
 
   // Default non-interior behavior: prefer persisted, fall back to computed.
   const persisted = photo.sort_order != null ? Number(photo.sort_order) : NaN
