@@ -371,6 +371,33 @@ export function getPhotoSortOrder(section, subsection = '', context = {}) {
     return 700 + roomBase * 10 + surfaceOffset
   }
 
+  // Detail-mode building photos live under `building_<id>_<area>` section
+  // keys (set by DetailedBuildingFlow in inspektit-app). They conceptually
+  // belong with Other Structures (1000-1199) since the building IS an
+  // other-structure entry with mode: 'detail'. Slot them after Fence
+  // (1070) and before Personal Property (1200), bucketed by area.
+  //
+  // Within an area, group_sequence (already used as the secondary sort
+  // key by extractReportData and the web dashboard) breaks ties so
+  // multi-photo areas keep capture order. For a claim with TWO detailed
+  // buildings, photos interleave by area (all 'front' photos together
+  // regardless of building) — acceptable for V1; if needed later, fold
+  // a building index into the bucket math without breaking persisted
+  // values.
+  //
+  // Discovered via Nahun Reyes claim 01009806143, 2026-05-06: 17 Shed
+  // photos were stranded at 999999 and sorted AFTER personal property
+  // because this branch did not exist. Existing claims keep their
+  // persisted sort_order (getEffectiveSortOrder prefers persisted) so
+  // this change is forward-only — no surprise reorders on closed claims.
+  if (section.startsWith('building_')) {
+    const m = section.match(/^building_.+_(roof|front|right|back|left|interior)$/)
+    const area = m ? m[1] : null
+    const AREA_BASE = { roof: 1100, front: 1110, right: 1120, back: 1130, left: 1140, interior: 1150 }
+    if (area && AREA_BASE[area] != null) return AREA_BASE[area]
+    return 1160 // building photo with unrecognized area suffix → end of OS slot
+  }
+
   if (section === 'personal_property') return 1200
 
   return 999999
