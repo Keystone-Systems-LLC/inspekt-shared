@@ -16,7 +16,7 @@ const ALLOWED_PATTERNS = [
   /^Test square (overview|detail) — /,
   /^No claim related damage to shingle\.$/,
   // Standard damage to a named target
-  /^(Hail|Wind|Water|Fire|Wear and tear|Mechanical|Prior|Smoke or fire|Impact|Functional) damage to .+\.$/,
+  /^(Hail|Wind|Water|Fire|Wear and tear|Mechanical|Prior|Smoke or fire|Impact|Functional|Cosmetic hail) damage to .+\.$/,
   /^Damage to .+\.$/,
   // AC structured outputs
   /^AC unit \d+ - .+\.$/,
