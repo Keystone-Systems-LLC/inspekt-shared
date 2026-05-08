@@ -270,13 +270,31 @@ export function getPhotoSortOrder(section, subsection = '', context = {}) {
   }
 
   if (section === 'other_structures') {
+    // FENCE first — fence subsection shape is `<id>_fence_<run>_<view>`
+    // (e.g. `<fence_id>_fence_front_overview`). The string ends with
+    // `_front_overview` so the elevation rules below would match it BEFORE
+    // the legacy `_fence_` catch-all at the bottom. That collision put
+    // fence-front photos at sort 1030 alongside Simple-mode Building
+    // front-elevation photos, which then interleaved by capture timestamp.
+    // Per-run buckets keep fence runs in their own contiguous block,
+    // ordered front → right → back → left, AFTER any Building photos.
+    // Discovered via Justin Waskow claim 01009818211, 2026-05-08.
+    if (sub.includes('_fence_front_')) return 1071
+    if (sub.includes('_fence_right_')) return 1072
+    if (sub.includes('_fence_back_'))  return 1073
+    if (sub.includes('_fence_left_'))  return 1074
+    if (sub.includes('_fence_'))       return 1075  // unknown fence subsection
+
+    // Building (Simple-mode), Pool, Awning, Landscape, Other — these use
+    // the standard <structureId>_<area>_<view> shape. Detail-mode buildings
+    // do NOT pass through this branch; they have section_key
+    // `building_<id>_<area>` and are handled by the detail-mode block above.
     if (sub.endsWith('_roof_closeup')) return 1020
     if (sub.endsWith('_roof_overview')) return 1010
     if (sub.endsWith('_front_closeup') || sub.endsWith('_front_overview')) return 1030
     if (sub.endsWith('_right_closeup') || sub.endsWith('_right_overview')) return 1040
     if (sub.endsWith('_back_closeup') || sub.endsWith('_back_overview')) return 1050
     if (sub.endsWith('_left_closeup') || sub.endsWith('_left_overview')) return 1060
-    if (sub.includes('_fence_')) return 1070
     if (sub.endsWith('_overview')) return 1000
     return 1080
   }
