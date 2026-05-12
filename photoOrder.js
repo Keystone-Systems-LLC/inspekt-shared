@@ -329,10 +329,41 @@ export function getPhotoSortOrder(section, subsection = '', context = {}) {
     // `building_<id>_<area>` and are handled by the detail-mode block above.
     if (sub.endsWith('_roof_closeup')) return 1020
     if (sub.endsWith('_roof_overview')) return 1010
-    if (sub.endsWith('_front_closeup') || sub.endsWith('_front_overview')) return 1030
-    if (sub.endsWith('_right_closeup') || sub.endsWith('_right_overview')) return 1040
-    if (sub.endsWith('_back_closeup') || sub.endsWith('_back_overview')) return 1050
-    if (sub.endsWith('_left_closeup') || sub.endsWith('_left_overview')) return 1060
+
+    // Per-item subsection rules — added 2026-05-12 (item #9 Phase B).
+    // Simple Building elevation items get decimal offsets within the
+    // elevation block so each elevation's overview photo (1030/1040/
+    // 1050/1060) sorts FIRST, then item photos in fixed order matching
+    // the dwelling pattern: soffit → fascia → siding → door → window
+    // → custom items. Subsection shape: `<structureId>_<elev>_<itemKey>`
+    // for defaults and `<structureId>_<elev>_custom_<customId>` for
+    // user-added items.
+    const ELEV_BASE = { front: 1030, right: 1040, back: 1050, left: 1060 }
+    const ELEV_ITEM_OFFSET = {
+      soffit: 0.1,
+      fascia: 0.2,
+      siding: 0.3,
+      door: 0.4,
+      window: 0.5,
+    }
+    for (const elev of ['front', 'right', 'back', 'left']) {
+      if (sub.endsWith(`_${elev}_overview`) || sub.endsWith(`_${elev}_closeup`)) {
+        return ELEV_BASE[elev]
+      }
+      // Custom items — `_<elev>_custom_<customId>`. Use 0.6 base so
+      // customs sort after all defaults. Multiple customs distinguished
+      // by their persisted sort_order (capture-time) or by adding
+      // 0.001 per custom-id-index if needed later.
+      if (sub.includes(`_${elev}_custom_`)) {
+        return ELEV_BASE[elev] + 0.6
+      }
+      for (const [itemKey, offset] of Object.entries(ELEV_ITEM_OFFSET)) {
+        if (sub.endsWith(`_${elev}_${itemKey}`)) {
+          return ELEV_BASE[elev] + offset
+        }
+      }
+    }
+
     if (sub.endsWith('_overview')) return 1000
     return 1080
   }
