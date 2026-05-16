@@ -39,10 +39,24 @@ export function getPhotoSortOrder(section, subsection = '', context = {}) {
     'roof::test_square_Front_overview': 150,
     'roof::test_square_Front_details': 151,
     'roof::test_square_Front_hail_hits': 152,
+    // Metal hail damage — added 2026-05-16 alongside the metal roof flow.
+    // For metal slopes the shingle hail_hits (152) and wind_damage (153)
+    // slots remain empty (metal flow doesn't write there). Metal photos
+    // slot just after each shingle equivalent so the per-slope reading
+    // order is: overview → details → hail group → wind group → no-damage
+    // → non-claim types, regardless of material.
+    'roof::test_square_Front_cosmetic_hail': 152.5,
+    'roof::test_square_Front_functional_hail': 152.6,
     'roof::test_square_Front_wind_damage': 153,
+    'roof::test_square_Front_cosmetic_wind': 153.5,
+    'roof::test_square_Front_functional_wind': 153.6,
     // Shingle close-up (formerly "No damage on roof" — UI renamed
     // 2026-05-11, subsection key kept stable so existing photos still sort).
     'roof::test_square_Front_non_claim': 154,
+    // Metal no-damage close-up — distinct subsection key from shingle's
+    // _non_claim. Slot just after so both materials' "no damage shown"
+    // photos read consecutively in mixed-material reports.
+    'roof::test_square_Front_no_damage': 154.05,
     // Non-claim damage capture types — added 2026-05-11. Slot in decimal
     // increments between Shingle close-up (154) and the next slope's overview
     // (160) so existing rows aren't renumbered. Order mirrors the
@@ -55,12 +69,21 @@ export function getPhotoSortOrder(section, subsection = '', context = {}) {
     'roof::test_square_Front_nc_defect': 154.6,
     'roof::test_square_Front_nc_algae': 154.7,
     'roof::test_square_Front_nc_improper_install': 154.8,
+    // New non-claim types added 2026-05-16 alongside the metal roof flow.
+    // Available to all materials, commonly seen on metal claims.
+    'roof::test_square_Front_nc_prior_repair': 154.9,
+    'roof::test_square_Front_nc_sealant_applied': 154.95,
 
     'roof::test_square_Right_overview': 160,
     'roof::test_square_Right_details': 161,
     'roof::test_square_Right_hail_hits': 162,
+    'roof::test_square_Right_cosmetic_hail': 162.5,
+    'roof::test_square_Right_functional_hail': 162.6,
     'roof::test_square_Right_wind_damage': 163,
+    'roof::test_square_Right_cosmetic_wind': 163.5,
+    'roof::test_square_Right_functional_wind': 163.6,
     'roof::test_square_Right_non_claim': 164,
+    'roof::test_square_Right_no_damage': 164.05,
     'roof::test_square_Right_nc_mech': 164.1,
     'roof::test_square_Right_nc_wear': 164.2,
     'roof::test_square_Right_nc_nail_pop': 164.3,
@@ -69,12 +92,19 @@ export function getPhotoSortOrder(section, subsection = '', context = {}) {
     'roof::test_square_Right_nc_defect': 164.6,
     'roof::test_square_Right_nc_algae': 164.7,
     'roof::test_square_Right_nc_improper_install': 164.8,
+    'roof::test_square_Right_nc_prior_repair': 164.9,
+    'roof::test_square_Right_nc_sealant_applied': 164.95,
 
     'roof::test_square_Back_overview': 170,
     'roof::test_square_Back_details': 171,
     'roof::test_square_Back_hail_hits': 172,
+    'roof::test_square_Back_cosmetic_hail': 172.5,
+    'roof::test_square_Back_functional_hail': 172.6,
     'roof::test_square_Back_wind_damage': 173,
+    'roof::test_square_Back_cosmetic_wind': 173.5,
+    'roof::test_square_Back_functional_wind': 173.6,
     'roof::test_square_Back_non_claim': 174,
+    'roof::test_square_Back_no_damage': 174.05,
     'roof::test_square_Back_nc_mech': 174.1,
     'roof::test_square_Back_nc_wear': 174.2,
     'roof::test_square_Back_nc_nail_pop': 174.3,
@@ -83,12 +113,19 @@ export function getPhotoSortOrder(section, subsection = '', context = {}) {
     'roof::test_square_Back_nc_defect': 174.6,
     'roof::test_square_Back_nc_algae': 174.7,
     'roof::test_square_Back_nc_improper_install': 174.8,
+    'roof::test_square_Back_nc_prior_repair': 174.9,
+    'roof::test_square_Back_nc_sealant_applied': 174.95,
 
     'roof::test_square_Left_overview': 180,
     'roof::test_square_Left_details': 181,
     'roof::test_square_Left_hail_hits': 182,
+    'roof::test_square_Left_cosmetic_hail': 182.5,
+    'roof::test_square_Left_functional_hail': 182.6,
     'roof::test_square_Left_wind_damage': 183,
+    'roof::test_square_Left_cosmetic_wind': 183.5,
+    'roof::test_square_Left_functional_wind': 183.6,
     'roof::test_square_Left_non_claim': 184,
+    'roof::test_square_Left_no_damage': 184.05,
     'roof::test_square_Left_nc_mech': 184.1,
     'roof::test_square_Left_nc_wear': 184.2,
     'roof::test_square_Left_nc_nail_pop': 184.3,
@@ -97,6 +134,8 @@ export function getPhotoSortOrder(section, subsection = '', context = {}) {
     'roof::test_square_Left_nc_defect': 184.6,
     'roof::test_square_Left_nc_algae': 184.7,
     'roof::test_square_Left_nc_improper_install': 184.8,
+    'roof::test_square_Left_nc_prior_repair': 184.9,
+    'roof::test_square_Left_nc_sealant_applied': 184.95,
 
     'roof::tarp_photos': 186,
     'roof::tarp_under_photos': 187,
@@ -275,6 +314,67 @@ export function getPhotoSortOrder(section, subsection = '', context = {}) {
 
   const mapped = ORDER[key]
   if (mapped != null) return mapped
+
+  // Custom roof test squares — added 2026-05-16 alongside the metal flow.
+  // Subsection shape: `test_square_custom_<id>_<rest>` where <rest> is one
+  // of overview / details / cosmetic_hail / functional_hail / cosmetic_wind /
+  // functional_wind / no_damage / non_claim / nc_<type>.
+  //
+  // The user can add multiple custom test squares (e.g. "Patio Roof",
+  // "Garage Roof"); their order is the array order on
+  // roof.customTestSquares. The base slot 185 sits between Left's final
+  // non-claim slot (184.95) and tarp (186), giving the custom squares
+  // their own block in the per-slope reading order — directional Front
+  // → Right → Back → Left → custom #1 → custom #2 → … → tarp.
+  //
+  // Per-square width is 0.2; per-subsection width is 0.01. So:
+  //   custom #1 at base 185.00 occupies 185.00 – 185.16
+  //   custom #2 at base 185.20 occupies 185.20 – 185.36
+  //   … up to ~5 custom squares before colliding with tarp at 186.
+  //   (Most claims have 0–1 custom squares; 5 is comfortable headroom.)
+  //
+  // The context.customTestSquareOrders array is populated by
+  // extractReportData (iOS + cloud) from roofData.customTestSquares.
+  if (section === 'roof' && sub.startsWith('test_square_custom_')) {
+    const afterPrefix = sub.slice('test_square_custom_'.length)
+    const firstUnderscoreIdx = afterPrefix.indexOf('_')
+    if (firstUnderscoreIdx > 0) {
+      const customId = afterPrefix.slice(0, firstUnderscoreIdx)
+      const restKey = afterPrefix.slice(firstUnderscoreIdx + 1)
+      const orders = context.customTestSquareOrders || []
+      const idx = orders.indexOf(customId)
+      const safeIdx = idx >= 0 ? idx : orders.length
+      const base = 185.0 + safeIdx * 0.2
+
+      const SUB_OFFSET = {
+        overview: 0.00,
+        details: 0.01,
+        hail_hits: 0.02,            // unused by metal but retained for shingle parity
+        cosmetic_hail: 0.025,
+        functional_hail: 0.03,
+        wind_damage: 0.04,          // unused by metal but retained for shingle parity
+        cosmetic_wind: 0.045,
+        functional_wind: 0.05,
+        non_claim: 0.06,
+        no_damage: 0.065,
+        nc_mech: 0.07,
+        nc_wear: 0.08,
+        nc_nail_pop: 0.09,
+        nc_tree_rub: 0.10,
+        nc_foot_traffic: 0.11,
+        nc_defect: 0.12,
+        nc_algae: 0.13,
+        nc_improper_install: 0.14,
+        nc_prior_repair: 0.15,
+        nc_sealant_applied: 0.16,
+      }
+      const offset = SUB_OFFSET[restKey]
+      if (offset != null) return base + offset
+      // Unknown rest key for a custom test square — slot at the very end
+      // of this square's block.
+      return base + 0.18
+    }
+  }
 
   // Custom items per section. CustomItemSection writes photos with
   // subsection = `custom_item_<itemId>`. Without differentiation all custom
@@ -542,6 +642,12 @@ export function getEffectiveSortOrder(photo, sortContext = {}) {
   //      a stale `sort_order = 999999` persisted; recompute fixes them
   //      on the fly.
   if (subsectionKey.startsWith('custom_item_')) return computed
+
+  // Custom roof test squares: ALWAYS recompute. Same reasoning as custom
+  // items — if the user reorders or removes a custom test square, the
+  // remaining photos should re-derive their positions from the new array
+  // order on the inspection record. Subsection prefix is `test_square_custom_`.
+  if (subsectionKey.startsWith('test_square_custom_')) return computed
 
   // Default non-interior behavior: prefer persisted, fall back to computed.
   const persisted = photo.sort_order != null ? Number(photo.sort_order) : NaN
